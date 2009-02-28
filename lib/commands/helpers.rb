@@ -261,6 +261,17 @@ helper :has_launchy? do |blk|
   end
 end
 
+helper :has_mechanize? do |blk|
+  begin
+    gem 'mechanize'
+    require 'mechanize'
+    blk.call
+  rescue Gem::LoadError
+    STDERR.puts "Sorry, you need to install mechanize: `gem install mechanize`"
+  end
+end
+
+
 helper :open do |url|
   has_launchy? proc {
     Launchy::Browser.new.visit url

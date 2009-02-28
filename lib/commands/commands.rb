@@ -166,6 +166,19 @@ command :create do |repo|
   git_exec "push origin master"
 end
 
+desc "Delete a GitHub repository"
+usage "github delete [repo]"
+flags :force => 'Deletes without asking'
+command :delete do |repo|
+    unless options[:force]
+        print "Are you really sure you want to delete [ #{repo} ] ? [y/n] "
+        answer = ( ( STDIN.gets ).to_s.chomp ).downcase
+        ( puts "Aborting due to user input." or return ) unless answer =~ %r{y}i
+    end
+    sh "curl -F 'repository[name]=#{repo}' -F 'login=#{github_user}' -F 'token=#{github_token}' -F '_method=delete' https://github.com/#{github_user}/#{repo}/edit/delete"
+end
+
+
 desc "Forks a GitHub repository"
 usage "github fork [user]/[repo]"
 command :fork do |user, repo|
@@ -189,3 +202,5 @@ command 'create-from-local' do
   git "remote add origin git@github.com:#{github_user}/#{repo}.git"
   git_exec "push origin master"
 end
+
+
