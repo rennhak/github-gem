@@ -153,8 +153,18 @@ flags :mdown => 'Create README.mdown'
 flags :textile => 'Create README.textile'
 flags :rdoc => 'Create README.rdoc'
 flags :rst => 'Create README.rst'
+flags :description => 'Provide a description for your repository, use --description=\'This does xyz\''
+flags :homepage => 'Provide a homepage URL for your repository, use --homepage=\'http://www.example.com\''
 command :create do |repo|
-  sh "curl -F 'repository[name]=#{repo}' -F 'login=#{github_user}' -F 'token=#{github_token}' http://github.com/repositories"
+  ( puts "Can't create a repository of that name, there already exists a directory with that name." or return ) if( Dir["*"].include?( repo ) )
+
+  command = "curl   -F 'repository[name]=#{repo}' \
+                    -F 'login=#{github_user}'     \
+                    -F 'token=#{github_token}'    \
+                    #{ (!!options[:description]) ? ( '-F \'repository[description]=\''+options[:description].to_s+'\'' ) : ('') } \
+                    #{ (!!options[:homepage])    ? ( '-F \'repository[homepage]=\''+options[:homepage].to_s+'\'' )       : ('') } \
+                    http://github.com/repositories"
+  sh command
   mkdir repo
   cd repo
   git "init"
@@ -168,16 +178,15 @@ end
 
 desc "Delete a GitHub repository"
 usage "github delete [repo]"
-flags :force => 'Deletes without asking'
+flags :force => 'Deletes without asking for confirmation'
 command :delete do |repo|
-    unless options[:force]
-        print "Are you really sure you want to delete [ #{repo} ] ? [y/n] "
-        answer = ( ( STDIN.gets ).to_s.chomp ).downcase
-        ( puts "Aborting due to user input." or return ) unless answer =~ %r{y}i
-    end
-    sh "curl -F 'repository[name]=#{repo}' -F 'login=#{github_user}' -F 'token=#{github_token}' -F '_method=delete' https://github.com/#{github_user}/#{repo}/edit/delete"
+  unless options[:force]
+    print "Are you really sure you want to delete [ #{repo} ] ? [y/n] "
+    answer = ( ( STDIN.gets ).to_s.chomp ).downcase
+    ( puts "Aborting due to user input." or return ) unless answer =~ %r{y}i
+  end
+  sh "curl -F 'repository[name]=#{repo}' -F 'login=#{github_user}' -F 'token=#{github_token}' -F '_method=delete' https://github.com/#{github_user}/#{repo}/edit/delete"
 end
-
 
 desc "Forks a GitHub repository"
 usage "github fork [user]/[repo]"
