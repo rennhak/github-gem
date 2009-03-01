@@ -161,14 +161,20 @@ command :create do |repo|
   command = "curl   -F 'repository[name]=#{repo}' \
                     -F 'login=#{github_user}'     \
                     -F 'token=#{github_token}'    \
-                    #{ (!!options[:description]) ? ( '-F \'repository[description]=\''+options[:description].to_s+'\'' ) : ('') } \
-                    #{ (!!options[:homepage])    ? ( '-F \'repository[homepage]=\''+options[:homepage].to_s+'\'' )       : ('') } \
+                    #{ (!!options[:description]) ? ( '-F \'repository[description]='+options[:description].to_s+'\'' ) : ('') } \
+                    #{ (!!options[:homepage])    ? ( '-F \'repository[homepage]='+options[:homepage].to_s+'\'' )       : ('') } \
                     http://github.com/repositories"
+
   sh command
+
+  # Get rid of options we don't need anymore
+  [:description, :homepage].each { |o| options.delete( o ) }
+
   mkdir repo
   cd repo
   git "init"
   extension = options.keys.first
+
   touch extension ? "README.#{extension}" : "README"
   git "add *"
   git "commit -m 'First commit!'"
@@ -185,7 +191,8 @@ command :delete do |repo|
     answer = ( ( STDIN.gets ).to_s.chomp ).downcase
     ( puts "Aborting due to user input." or return ) unless answer =~ %r{y}i
   end
-  sh "curl -F 'repository[name]=#{repo}' -F 'login=#{github_user}' -F 'token=#{github_token}' -F '_method=delete' https://github.com/#{github_user}/#{repo}/edit/delete"
+  result = ( `curl -s -F 'repository[name]=#{repo}' -F 'login=#{github_user}' -F 'token=#{github_token}' -F '_method=delete' https://github.com/#{github_user}/#{repo}/edit/delete | egrep -i error` ).chomp
+  puts "There was an error, maybe some of your credentals are wrong? Does this repo exist ?" unless result.empty?
 end
 
 desc "Forks a GitHub repository"
