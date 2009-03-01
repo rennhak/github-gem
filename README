@@ -24,7 +24,7 @@ Starting from zero
 
 Hm, didn't like that name. Let's get rid of the repo again.
 
-  $ github delete MyRepository --silent
+  $ github delete MyRepository --force
 
 =============
 Pulling Upstream Changes
