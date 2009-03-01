@@ -17,6 +17,16 @@ Run it:
 
 
 =============
+Starting from zero
+=============
+
+  $ github create MyRepository --description "Does this and that for you" --homepage "http://www.myrepository.com"
+
+Hm, didn't like that name. Let's get rid of the repo again.
+
+  $ github delete MyRepository --silent
+
+=============
 Pulling Upstream Changes
 =============
 
